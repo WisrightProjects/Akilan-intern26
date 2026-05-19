@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Thirukkural App</title>
+
+  <style>
+    body{
+      font-family: Arial, sans-serif;
+      background: linear-gradient(90deg, #3f87a6 0%, #ebf8e1 50%, #f69d3c 100%);
+      background-image: url(/images.jpg);
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-size: auto 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container{
+      background:rgba(39, 36, 36, 0.08);
+      margin:20px;
+      border: 1PX solid black;
+      border-radius:20px;
+      backdrop-filter:blur(8px);
+      padding: 25px 20px 10px 20px;
+      width: 400px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      text-align: center;
+      position:relative;
+    }
+
+    h1{
+      color: #333;
+    }
+
+    input{
+      width: 80%;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    button{
+      margin-top: 15px;
+      padding: 10px 20px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover{
+      background-color: #0056b3;
+    }
+
+    .result{
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    .tamil{
+      font-size: 20px;
+      color: darkred;
+      font-weight: bold;
+      line-height: 1.8;
+    }
+
+    .english{
+      margin-top: 15px;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .error{
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <h1>Thirukkural Finder</h1>
+
+    <input 
+      type="number" 
+      id="num" 
+      placeholder="Enter Kural Number (1 - 1330)"
+      min="1"
+      max="1330"
+    >
+
+    <br>
+
+    <button onclick="getKural()">
+      Get Kural
+    </button>
+
+    <div class="result">
+
+      <div id="tamil" class="tamil"></div>
+
+      <div id="english" class="english"></div>
+
+      <div id="error" class="error"></div>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    async function getKural(){
+
+      // Get input value
+      const number =
+        document.getElementById("num").value;
+
+      // Clear old messages
+      document.getElementById("error").innerHTML = "";
+      document.getElementById("tamil").innerHTML = "";
+      document.getElementById("english").innerHTML = "";
+
+      // Validate input
+      if(number < 1 || number > 1330){
+
+        document.getElementById("error").innerHTML =
+          "Please enter a number between 1 and 1330";
+
+        return;
+      }
+
+      try{
+
+        // Fetch JSON data from API
+        const response = await fetch(
+          "https://raw.githubusercontent.com/tk120404/thirukkural/master/thirukkural.json"
+        );
+
+        // Convert response to JSON
+        const allKurals =
+          await response.json();
+
+        // Get selected kural
+        const data =
+          allKurals.kural[number - 1];
+
+        // Check if data exists
+        if(data){
+
+          // Display Tamil Kural
+          document.getElementById("tamil").innerHTML =
+            data.Line1 + "<br>" + data.Line2;
+
+          // Display English Translation
+          document.getElementById("english").innerHTML =
+            "<strong>Meaning:</strong><br>" +
+            data.Translation;
+        }
+
+        else{
+
+          document.getElementById("error").innerHTML =
+            "Kural not found";
+        }
+
+      }
+
+      catch(error){
+
+        console.log(error);
+
+        document.getElementById("error").innerHTML =
+          "Something went wrong!";
+      }
+
+    }
+
+  </script>
+
+</body>
+</html>
