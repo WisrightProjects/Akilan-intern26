@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JavaScript Promises Playground</title>
+    <style>
+        *{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    margin: 0;
+    min-height: 100vh;
+
+    background-image: url("/2022.webp");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    padding: 20px;
+
+}
+.container{
+    max-width:900px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+    height: 80vh;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.buttons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:20px;
+}
+
+button{
+    padding:10px 15px;
+    border:none;
+    background:#007bff;
+    color:white;
+    cursor:pointer;
+    border-radius:5px;
+}
+
+button:hover{
+    opacity:0.9;
+}
+
+#output{
+    background:black;
+    color:#00ff00;
+    min-height:250px;
+    padding:15px;
+    border-radius:5px;
+    overflow:auto;
+    white-space:pre-line;
+}
+</style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>JavaScript Promises Playground</h1>
+
+        <div class="buttons">
+            <button onclick="createPromise()">Create Promise</button>
+            <button onclick="promiseChain()">Promise Chain</button>
+            <button onclick="promiseAll()">Promise.all()</button>
+            <button onclick="promiseRace()">Promise.race()</button>
+            <button onclick="promiseAllSettled()">Promise.allSettled()</button>
+            <button onclick="promiseAny()">Promise.any()</button>
+            <button onclick="clearOutput()">Clear</button>
+        </div>
+
+        <h2>Output</h2>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        const output = document.getElementById("output");
+
+function log(message){
+    output.innerHTML += message + "\n";
+}
+
+function clearOutput(){
+    output.innerHTML = "";
+}
+
+// ============================
+// Create Promise
+// ============================
+
+function createPromise(){
+
+    log("Creating Promise...");
+
+    const promise = new Promise((resolve,reject)=>{
+
+        const success = Math.random() > 0.5;
+
+        setTimeout(()=>{
+
+            if(success){
+                resolve("Promise Fulfilled");
+            }else{
+                reject("Promise Rejected");
+            }
+
+        },2000);
+
+    });
+
+    promise
+        .then(result=>{
+            log("THEN: " + result);
+        })
+        .catch(error=>{
+            log("CATCH: " + error);
+        })
+        .finally(()=>{
+            log("FINALLY: Always Executes");
+            log("--------------------------------");
+        });
+}
+
+// ============================
+// Promise Chaining
+// ============================
+
+function promiseChain(){
+
+    log("Promise Chaining Started");
+
+    Promise.resolve(5)
+
+        .then(num=>{
+            log("Step 1: " + num);
+            return num * 2;
+        })
+
+        .then(num=>{
+            log("Step 2: " + num);
+            return num + 10;
+        })
+
+        .then(num=>{
+            log("Final Result: " + num);
+            log("--------------------------------");
+        });
+}
+
+// ============================
+// Promise.all()
+// ============================
+
+function promiseAll(){
+
+    log("Promise.all()");
+
+    const p1 = Promise.resolve("User Data");
+    const p2 = Promise.resolve("Orders");
+    const p3 = Promise.resolve("Products");
+
+    Promise.all([p1,p2,p3])
+
+        .then(results=>{
+            log("All Success:");
+            log(JSON.stringify(results));
+            log("--------------------------------");
+        })
+
+        .catch(error=>{
+            log(error);
+        });
+}
+
+// ============================
+// Promise.race()
+// ============================
+
+function promiseRace(){
+
+    log("Promise.race()");
+
+    const p1 = new Promise(resolve=>{
+        setTimeout(()=>resolve("First"),1000);
+    });
+
+    const p2 = new Promise(resolve=>{
+        setTimeout(()=>resolve("Second"),3000);
+    });
+
+    Promise.race([p1,p2])
+
+        .then(result=>{
+            log("Winner: " + result);
+            log("--------------------------------");
+        });
+}
+
+// ============================
+// Promise.allSettled()
+// ============================
+
+function promiseAllSettled(){
+
+    log("Promise.allSettled()");
+
+    const p1 = Promise.resolve("Success");
+    const p2 = Promise.reject("Error");
+    const p3 = Promise.resolve("Done");
+
+    Promise.allSettled([p1,p2,p3])
+
+        .then(results=>{
+
+            results.forEach(item=>{
+                log(JSON.stringify(item));
+            });
+
+            log("--------------------------------");
+        });
+}
+
+// ============================
+// Promise.any()
+// ============================
+
+function promiseAny(){
+
+    log("Promise.any()");
+
+    const p1 = Promise.reject("Error 1");
+
+    const p2 = new Promise(resolve=>{
+        setTimeout(()=>{
+            resolve("Success From Promise 2");
+        },2000);
+    });
+
+    const p3 = Promise.reject("Error 3");
+
+    Promise.any([p1,p2,p3])
+
+        .then(result=>{
+            log(result);
+            log("--------------------------------");
+        })
+
+        .catch(error=>{
+            log(error);
+        });
+}
+    </script>
+</body>
+</html>
