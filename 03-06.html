@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Task Manager</title>
+
+    <style>
+        body{
+            background: #EEAECA;
+            background: radial-gradient(circle, rgba(238, 174, 202, 1) 0%, rgba(148, 187, 233, 1) 100%);padding: 200px;
+            /* width: 100%;
+            height: 100vh; */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .task-list {
+            list-style: none;
+            padding: 0;
+            width: 500px;
+            border-radius: 50%;
+            background: #3deeeb;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 50px;
+        }
+        .task-item:hover {
+            background: #b4b4b4;
+        }
+
+        .task-item.completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .task-item.completed span {
+            text-decoration: line-through;
+        }
+
+        .delete-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 50%  ;
+        }
+        .delete-btn:hover {
+            background: goldenrod;
+            color: black
+        }
+
+        .task-text {
+            flex: 1;
+            cursor: pointer;
+        }
+        .task-text:hover {
+            color: rgb(255, 255, 255);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        #stats {
+            margin-top: 15px;
+            display: flex;
+            gap: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div id="task-app">
+    <h2>Task Manager</h2>
+
+    <div class="input-group">
+        <input type="text" id="task-input" placeholder="Enter a task...">
+        <button id="add-btn">Add Task</button>
+    </div>
+
+    <ul id="task-list" class="task-list"></ul>
+
+    <div id="stats">
+        <span id="total-count">Total: 0</span>
+        <span id="completed-count">Completed: 0</span>
+    </div>
+</div>
+
+<script>
+    const taskInput = document.getElementById('task-input');
+    const addBtn = document.getElementById('add-btn');
+    const taskList = document.getElementById('task-list');
+    const totalCount = document.getElementById('total-count');
+    const completedCount = document.getElementById('completed-count');
+
+    // 1. Create task item element
+    function createTaskItem(text) {
+        const li = document.createElement('li');
+        li.classList.add('task-item');
+        li.dataset.completed = 'false';
+
+        const span = document.createElement('span');
+        span.classList.add('task-text');
+        span.textContent = text;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.classList.add('delete-btn');
+        deleteBtn.textContent = 'Delete';
+
+        li.appendChild(span);
+        li.appendChild(deleteBtn);
+
+        return li;
+    }
+
+    // 2. Add new task
+    function addTask() {
+        const text = taskInput.value.trim();
+
+        if (text === '') {
+            alert('Please enter a task');
+            return;
+        }
+
+        const taskItem = createTaskItem(text);
+
+        taskList.appendChild(taskItem);
+
+        taskInput.value = '';
+
+        updateStats();
+    }
+
+    // 3. Delete task
+    function deleteTask(taskItem) {
+        taskItem.remove();
+        updateStats();
+    }
+
+    // 4. Toggle task completion
+    function toggleComplete(taskItem) {
+        taskItem.classList.toggle('completed');
+
+        const isCompleted =
+            taskItem.classList.contains('completed');
+
+        taskItem.dataset.completed = isCompleted;
+
+        updateStats();
+    }
+
+    // 5. Update statistics
+    function updateStats() {
+        const totalTasks =
+            taskList.querySelectorAll('.task-item').length;
+
+        const completedTasks =
+            taskList.querySelectorAll('.task-item.completed').length;
+
+        totalCount.textContent = `Total: ${totalTasks}`;
+        completedCount.textContent = `Completed: ${completedTasks}`;
+    }
+
+    // 6. Event Listeners
+
+    // Add Button
+    addBtn.addEventListener('click', addTask);
+
+    // Enter Key
+    taskInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            addTask();
+        }
+    });
+
+    // Event Delegation
+    taskList.addEventListener('click', function (e) {
+        const taskItem = e.target.closest('.task-item');
+
+        if (!taskItem) return;
+
+        if (e.target.classList.contains('delete-btn')) {
+            deleteTask(taskItem);
+        }
+        else if (e.target.classList.contains('task-text')) {
+            toggleComplete(taskItem);
+        }
+    });
+
+    // 7. Initialize Sample Tasks
+    function initializeTasks() {
+        const sampleTasks = [
+            'Learn JavaScript',
+            'Practice DOM manipulation',
+            'Build projects'
+        ];
+
+        sampleTasks.forEach(task => {
+            const taskItem = createTaskItem(task);
+            taskList.appendChild(taskItem);
+        });
+
+        updateStats();
+    }
+
+    initializeTasks();
+</script>
+
+</body>
+</html>
