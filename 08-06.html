@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript Events Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .box {
+            width: 250px;
+            height: 100px;
+            background-color: lightblue;
+            text-align: center;
+            line-height: 100px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        #parent {
+            padding: 30px;
+            background-color: lightgreen;
+            margin-bottom: 20px;
+        }
+
+        #child {
+            padding: 15px;
+        }
+
+        ul {
+            width: 200px;
+        }
+
+        li {
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        #output {
+            border: 1px solid #ccc;
+            min-height: 100px;
+            padding: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>JavaScript Events Demo</h1>
+
+<!-- Click Event -->
+<button id="clickBtn">Click Me</button>
+
+<br><br>
+
+<!-- Mouse Events -->
+<div class="box" id="hoverBox">
+    Hover Over Me
+</div>
+
+<!-- Keyboard Event -->
+<input type="text" id="nameInput" placeholder="Type something">
+
+<br><br>
+
+<!-- preventDefault -->
+<a href="https://www.google.com" id="googleLink">
+    Open Google
+</a>
+
+<br><br>
+
+<!-- Bubbling & Capturing -->
+<div id="parent">
+    Parent Div
+    <button id="child">Child Button</button>
+</div>
+
+<!-- Event Delegation -->
+<h3>Click Any Item</h3>
+<ul id="languageList">
+    <li>HTML</li>
+    <li>CSS</li>
+    <li>JavaScript</li>
+    <li>Java</li>
+</ul>
+
+<h3>Output</h3>
+<div id="output"></div>
+
+<script>
+
+const output = document.getElementById("output");
+
+function log(message) {
+    output.innerHTML += message + "<br>";
+}
+
+/* -------------------------
+   Click Event
+------------------------- */
+
+document.getElementById("clickBtn")
+.addEventListener("click", function(event) {
+
+    log("Button Clicked");
+    log("event.target = " + event.target.tagName);
+    log("event.currentTarget = " + event.currentTarget.tagName);
+});
+
+/* -------------------------
+   Mouse Events
+------------------------- */
+
+const hoverBox = document.getElementById("hoverBox");
+
+hoverBox.addEventListener("mouseover", function() {
+    hoverBox.style.backgroundColor = "yellow";
+    log("Mouse Entered Box");
+});
+
+hoverBox.addEventListener("mouseout", function() {
+    hoverBox.style.backgroundColor = "lightblue";
+    log("Mouse Left Box");
+});
+
+/* -------------------------
+   Keyboard Event
+------------------------- */
+
+document.getElementById("nameInput")
+.addEventListener("keyup", function(event) {
+
+    log("Typed Key: " + event.key);
+});
+
+/* -------------------------
+   preventDefault
+------------------------- */
+
+document.getElementById("googleLink")
+.addEventListener("click", function(event) {
+
+    event.preventDefault();
+
+    log("Default Link Navigation Prevented");
+});
+
+/* -------------------------
+   Event Capturing
+------------------------- */
+
+document.getElementById("parent")
+.addEventListener("click", function() {
+
+    log("Parent Capturing");
+
+}, true);
+
+/* -------------------------
+   Event Bubbling
+------------------------- */
+
+document.getElementById("parent")
+.addEventListener("click", function() {
+
+    log("Parent Bubbling");
+
+});
+
+document.getElementById("child")
+.addEventListener("click", function(event) {
+
+    log("Child Button Clicked");
+
+    // Uncomment to stop bubbling
+    // event.stopPropagation();
+
+});
+
+/* -------------------------
+   Event Delegation
+------------------------- */
+
+document.getElementById("languageList")
+.addEventListener("click", function(event) {
+
+    if (event.target.tagName === "LI") {
+
+        log("Selected Language: " +
+            event.target.textContent);
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>
