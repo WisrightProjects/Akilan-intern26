@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Browser Storage Master Demo</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 30px;
+        transition: 0.3s;
+    }
+
+    .dark {
+        background-color: #222;
+        color: white;
+    }
+
+    section {
+        border: 1px solid #ccc;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+    }
+
+    input, textarea {
+        width: 100%;
+        padding: 8px;
+        margin: 5px 0;
+    }
+
+    button {
+        padding: 8px 12px;
+        margin: 5px;
+        cursor: pointer;
+    }
+
+    li {
+        margin: 5px 0;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>Browser Storage Master Demo</h1>
+
+<!-- Visit Counter -->
+<section>
+    <h2>1. Visit Counter (localStorage)</h2>
+    <p id="visit-count"></p>
+</section>
+
+<!-- Theme Preference -->
+<section>
+    <h2>2. Theme Preference (localStorage)</h2>
+
+    <button id="light-btn">Light Mode</button>
+    <button id="dark-btn">Dark Mode</button>
+</section>
+
+<!-- User Profile -->
+<section>
+    <h2>3. Store Complex Object (JSON)</h2>
+
+    <input type="text" id="name" placeholder="Enter Name">
+    <input type="text" id="role" placeholder="Enter Role">
+
+    <button id="save-profile">Save Profile</button>
+    <button id="load-profile">Load Profile</button>
+
+    <p id="profile-output"></p>
+</section>
+
+<!-- Form Draft -->
+<section>
+    <h2>4. Form Draft Autosave</h2>
+
+    <textarea
+        id="draft"
+        rows="5"
+        placeholder="Type something...">
+    </textarea>
+</section>
+
+<!-- Todo -->
+<section>
+    <h2>5. Todo List Persistence</h2>
+
+    <input type="text" id="task-input" placeholder="Enter task">
+
+    <button id="add-task">Add Task</button>
+
+    <ul id="task-list"></ul>
+</section>
+
+<!-- Session Storage -->
+<section>
+    <h2>6. Session Storage Example</h2>
+
+    <input
+        type="text"
+        id="session-note"
+        placeholder="Temporary Note">
+
+    <button id="save-session">
+        Save Session Note
+    </button>
+
+    <p id="session-output"></p>
+</section>
+
+<!-- Storage Events -->
+<section>
+    <h2>7. Storage Event Demo</h2>
+
+    <p>
+        Open this page in another tab and change the theme.
+        You'll see the update here.
+    </p>
+
+    <p id="storage-message"></p>
+</section>
+
+<script>
+
+/* ==========================
+   1. Visit Counter
+========================== */
+
+let visits =
+    Number(localStorage.getItem("visits")) || 0;
+
+visits++;
+
+localStorage.setItem("visits", visits);
+
+document.getElementById("visit-count").textContent =
+    `You have visited this page ${visits} times.`;
+
+
+/* ==========================
+   2. Theme Preference
+========================== */
+
+function applyTheme(theme) {
+    document.body.className =
+        theme === "dark" ? "dark" : "";
+}
+
+const savedTheme =
+    localStorage.getItem("theme") || "light";
+
+applyTheme(savedTheme);
+
+document.getElementById("light-btn")
+    .addEventListener("click", () => {
+
+        localStorage.setItem("theme", "light");
+        applyTheme("light");
+    });
+
+document.getElementById("dark-btn")
+    .addEventListener("click", () => {
+
+        localStorage.setItem("theme", "dark");
+        applyTheme("dark");
+    });
+
+
+/* ==========================
+   3. JSON Serialization
+========================== */
+
+document.getElementById("save-profile")
+    .addEventListener("click", () => {
+
+        const profile = {
+            name:
+                document.getElementById("name").value,
+
+            role:
+                document.getElementById("role").value
+        };
+
+        localStorage.setItem(
+            "profile",
+            JSON.stringify(profile)
+        );
+
+        alert("Profile Saved");
+    });
+
+document.getElementById("load-profile")
+    .addEventListener("click", () => {
+
+        const profile =
+            JSON.parse(
+                localStorage.getItem("profile")
+            );
+
+        if (profile) {
+            document.getElementById(
+                "profile-output"
+            ).textContent =
+                `Name: ${profile.name},
+                 Role: ${profile.role}`;
+        } else {
+            document.getElementById(
+                "profile-output"
+            ).textContent =
+                "No profile found.";
+        }
+    });
+
+
+/* ==========================
+   4. Draft Autosave
+========================== */
+
+const draft =
+    document.getElementById("draft");
+
+draft.value =
+    localStorage.getItem("draft") || "";
+
+draft.addEventListener("input", () => {
+
+    localStorage.setItem(
+        "draft",
+        draft.value
+    );
+});
+
+
+/* ==========================
+   5. Todo Persistence
+========================== */
+
+const taskInput =
+    document.getElementById("task-input");
+
+const taskList =
+    document.getElementById("task-list");
+
+function loadTasks() {
+
+    const tasks =
+        JSON.parse(
+            localStorage.getItem("tasks")
+        ) || [];
+
+    taskList.innerHTML = "";
+
+    tasks.forEach((task, index) => {
+
+        const li =
+            document.createElement("li");
+
+        li.innerHTML = `
+            ${task}
+            <button onclick="deleteTask(${index})">
+                Delete
+            </button>
+        `;
+
+        taskList.appendChild(li);
+    });
+}
+
+document.getElementById("add-task")
+    .addEventListener("click", () => {
+
+        const tasks =
+            JSON.parse(
+                localStorage.getItem("tasks")
+            ) || [];
+
+        if (taskInput.value.trim() === "")
+            return;
+
+        tasks.push(taskInput.value);
+
+        localStorage.setItem(
+            "tasks",
+            JSON.stringify(tasks)
+        );
+
+        taskInput.value = "";
+
+        loadTasks();
+    });
+
+function deleteTask(index) {
+
+    const tasks =
+        JSON.parse(
+            localStorage.getItem("tasks")
+        ) || [];
+
+    tasks.splice(index, 1);
+
+    localStorage.setItem(
+        "tasks",
+        JSON.stringify(tasks)
+    );
+
+    loadTasks();
+}
+
+loadTasks();
+
+
+/* ==========================
+   6. Session Storage
+========================== */
+
+document.getElementById("save-session")
+    .addEventListener("click", () => {
+
+        const note =
+            document.getElementById(
+                "session-note"
+            ).value;
+
+        sessionStorage.setItem(
+            "note",
+            note
+        );
+
+        showSessionNote();
+    });
+
+function showSessionNote() {
+
+    document.getElementById(
+        "session-output"
+    ).textContent =
+        sessionStorage.getItem("note")
+        || "No session note.";
+}
+
+showSessionNote();
+
+
+/* ==========================
+   7. Storage Events
+========================== */
+
+window.addEventListener(
+    "storage",
+    (event) => {
+
+        document.getElementById(
+            "storage-message"
+        ).textContent =
+            `Changed Key: ${event.key}
+             | New Value: ${event.newValue}`;
+
+        if (event.key === "theme") {
+            applyTheme(event.newValue);
+        }
+    }
+);
+
+</script>
+
+</body>
+</html>
