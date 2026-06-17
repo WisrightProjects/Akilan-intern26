@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 20px;
+        }
+
+        .quiz-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 520px;
+            padding: 32px 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: #4a3a8a;
+        }
+
+        .badge {
+            background: #eee6ff;
+            color: #6a4ec9;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 18px 0 24px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .question {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d2d2d;
+            margin-bottom: 22px;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            text-align: left;
+            padding: 14px 18px;
+            border: 2px solid #e2e2e2;
+            border-radius: 12px;
+            background: #fafafa;
+            font-size: 1rem;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .option:hover:not(:disabled) {
+            border-color: #764ba2;
+            background: #f3eeff;
+        }
+
+        .option:disabled {
+            cursor: default;
+        }
+
+        .option.correct {
+            border-color: #2ecc71;
+            background: #e7f9ef;
+            color: #1e8c4f;
+            font-weight: 600;
+        }
+
+        .option.wrong {
+            border-color: #e74c3c;
+            background: #fdecea;
+            color: #c0392b;
+            font-weight: 600;
+        }
+
+        .footer {
+            margin-top: 26px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .score {
+            font-size: 0.95rem;
+            color: #666;
+        }
+
+        .btn {
+            padding: 11px 24px;
+            border: none;
+            border-radius: 12px;
+            background: #6a4ec9;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease, opacity 0.2s ease;
+        }
+
+        .btn:hover { background: #553aa8; }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Result screen */
+        .result {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .result .emoji { font-size: 4rem; }
+
+        .result h2 {
+            font-size: 1.6rem;
+            color: #4a3a8a;
+            margin: 10px 0;
+        }
+
+        .result .final-score {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 24px;
+        }
+
+        .result .final-score strong { color: #6a4ec9; font-size: 1.3rem; }
+    </style>
+</head>
+<body>
+    <div class="quiz-card">
+        <!-- Quiz screen -->
+        <div id="quizScreen">
+            <div class="header">
+                <h1>🧠 Quick Quiz</h1>
+                <div class="badge" id="qCounter">1 / 5</div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="question" id="questionText">Loading...</div>
+            <div class="options" id="optionsBox"></div>
+
+            <div class="footer">
+                <div class="score" id="scoreText">Score: 0</div>
+                <button class="btn" id="nextBtn" disabled>Next</button>
+            </div>
+        </div>
+
+        <!-- Result screen -->
+        <div id="resultScreen" class="result" style="display:none;">
+            <div class="emoji" id="resultEmoji">🎉</div>
+            <h2 id="resultTitle">Quiz Complete!</h2>
+            <div class="final-score" id="finalScore"></div>
+            <button class="btn" id="restartBtn">🔄 New Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        // ---- Question bank (a new random set is picked every refresh) ----
+        const QUESTION_BANK = [
+            { q: "What is the capital of France?", options: ["Berlin", "Madrid", "Paris", "Rome"], answer: 2 },
+            { q: "Which planet is known as the Red Planet?", options: ["Venus", "Mars", "Jupiter", "Saturn"], answer: 1 },
+            { q: "What is 9 × 8?", options: ["72", "64", "81", "78"], answer: 0 },
+            { q: "Who wrote 'Romeo and Juliet'?", options: ["Charles Dickens", "Mark Twain", "William Shakespeare", "Jane Austen"], answer: 2 },
+            { q: "What is the largest ocean on Earth?", options: ["Atlantic", "Indian", "Arctic", "Pacific"], answer: 3 },
+            { q: "How many continents are there?", options: ["5", "6", "7", "8"], answer: 2 },
+            { q: "What gas do plants absorb from the atmosphere?", options: ["Oxygen", "Carbon Dioxide", "Nitrogen", "Hydrogen"], answer: 1 },
+            { q: "Which language runs in a web browser?", options: ["Python", "C++", "JavaScript", "Java"], answer: 2 },
+            { q: "What is the chemical symbol for water?", options: ["O2", "H2O", "CO2", "NaCl"], answer: 1 },
+            { q: "Who painted the Mona Lisa?", options: ["Van Gogh", "Picasso", "Da Vinci", "Rembrandt"], answer: 2 },
+            { q: "What is the smallest prime number?", options: ["0", "1", "2", "3"], answer: 2 },
+            { q: "Which country is home to the kangaroo?", options: ["India", "Australia", "Brazil", "Kenya"], answer: 1 },
+            { q: "How many sides does a hexagon have?", options: ["5", "6", "7", "8"], answer: 1 },
+            { q: "What is the freezing point of water in Celsius?", options: ["0°C", "32°C", "100°C", "-10°C"], answer: 0 },
+            { q: "Which is the longest river in the world?", options: ["Amazon", "Nile", "Yangtze", "Mississippi"], answer: 1 },
+            { q: "What does 'HTML' stand for?", options: ["Hyper Trainer Marking Language", "HyperText Markup Language", "HighText Machine Language", "Hyperlink Markup Logic"], answer: 1 },
+            { q: "Which animal is known as the 'King of the Jungle'?", options: ["Tiger", "Elephant", "Lion", "Bear"], answer: 2 },
+            { q: "What is 15% of 200?", options: ["20", "25", "30", "35"], answer: 2 },
+            { q: "Which planet is closest to the Sun?", options: ["Earth", "Mercury", "Venus", "Mars"], answer: 1 },
+            { q: "In which year did World War II end?", options: ["1942", "1945", "1948", "1939"], answer: 1 }
+        ];
+
+        const QUIZ_LENGTH = 5;
+
+        let questions = [];
+        let currentIndex = 0;
+        let score = 0;
+
+        // Fisher-Yates shuffle
+        function shuffle(arr) {
+            const a = arr.slice();
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function startQuiz() {
+            // Pick a fresh random subset, and shuffle their options too
+            questions = shuffle(QUESTION_BANK).slice(0, QUIZ_LENGTH).map(item => {
+                const opts = item.options.map((text, i) => ({ text, correct: i === item.answer }));
+                return { q: item.q, options: shuffle(opts) };
+            });
+
+            currentIndex = 0;
+            score = 0;
+
+            document.getElementById('resultScreen').style.display = 'none';
+            document.getElementById('quizScreen').style.display = 'block';
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const item = questions[currentIndex];
+
+            document.getElementById('qCounter').textContent = `${currentIndex + 1} / ${questions.length}`;
+            document.getElementById('progressFill').style.width = `${(currentIndex / questions.length) * 100}%`;
+            document.getElementById('questionText').textContent = item.q;
+            document.getElementById('scoreText').textContent = `Score: ${score}`;
+
+            const box = document.getElementById('optionsBox');
+            box.innerHTML = '';
+
+            item.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option';
+                btn.textContent = opt.text;
+                btn.addEventListener('click', () => selectAnswer(btn, opt.correct));
+                box.appendChild(btn);
+            });
+
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = true;
+            nextBtn.textContent = (currentIndex === questions.length - 1) ? 'Finish' : 'Next';
+        }
+
+        function selectAnswer(btn, isCorrect) {
+            const buttons = document.querySelectorAll('.option');
+            buttons.forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                // reveal the correct one
+                buttons.forEach((b, i) => {
+                    if (questions[currentIndex].options[i].correct) b.classList.add('correct');
+                });
+            }
+
+            document.getElementById('scoreText').textContent = `Score: ${score}`;
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < questions.length) {
+                renderQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('quizScreen').style.display = 'none';
+            const resultScreen = document.getElementById('resultScreen');
+            resultScreen.style.display = 'block';
+
+            const pct = Math.round((score / questions.length) * 100);
+            let emoji, title;
+
+            if (pct === 100)      { emoji = '🏆'; title = 'Perfect Score!'; }
+            else if (pct >= 60)   { emoji = '🎉'; title = 'Well Done!'; }
+            else if (pct >= 40)   { emoji = '🙂'; title = 'Not Bad!'; }
+            else                  { emoji = '📚'; title = 'Keep Practicing!'; }
+
+            document.getElementById('resultEmoji').textContent = emoji;
+            document.getElementById('resultTitle').textContent = title;
+            document.getElementById('finalScore').innerHTML =
+                `You scored <strong>${score} / ${questions.length}</strong> (${pct}%)`;
+        }
+
+        document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+        document.getElementById('restartBtn').addEventListener('click', startQuiz);
+
+        // Start a fresh random quiz on every page load / refresh
+        startQuiz();
+    </script>
+</body>
+</html>
