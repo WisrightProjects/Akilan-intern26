@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript Debugging & Best Practices</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#f4f4f4;
+    padding:20px;
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 0 10px rgba(0,0,0,.1);
+}
+
+button{
+    padding:10px 15px;
+    cursor:pointer;
+    margin:5px;
+}
+
+input{
+    padding:10px;
+    width:300px;
+}
+
+#output{
+    background:black;
+    color:lime;
+    padding:20px;
+    min-height:250px;
+    white-space:pre-line;
+    border-radius:10px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>JavaScript Debugging & Best Practices Playground</h1>
+
+<div class="card">
+
+<button onclick="debugDemo()">Debugging Demo</button>
+
+<button onclick="errorHandlingDemo()">Error Handling</button>
+
+<button onclick="performanceDemo()">Performance Test</button>
+
+<button onclick="localStorageDemo()">LocalStorage Demo</button>
+
+<button onclick="cleanCodeDemo()">Code Quality Demo</button>
+
+<button onclick="clearOutput()">Clear Output</button>
+
+</div>
+
+<div class="card">
+
+<h3>Debounce Search</h3>
+
+<input type="text" id="searchInput" placeholder="Type something...">
+
+</div>
+
+<div class="card">
+
+<h3>Output</h3>
+<div id="output"></div>
+
+</div>
+
+</div>
+
+<script>
+
+const output = document.getElementById("output");
+
+function print(message){
+    output.innerHTML += message + "\n";
+}
+
+function clearOutput(){
+    output.innerHTML = "";
+}
+
+/////////////////////////////////////////////////////////
+// DEBUGGING
+/////////////////////////////////////////////////////////
+
+function debugDemo(){
+
+    print("===== DEBUGGING =====");
+
+    let user = {
+        name:"Akilan",
+        age:22
+    };
+
+    console.log(user);
+
+    console.table(user);
+
+    console.warn("This is warning");
+
+    console.error("This is error");
+
+    console.info("Information message");
+
+    debugger;
+
+    print("Open DevTools (F12) to inspect console output.");
+
+}
+
+/////////////////////////////////////////////////////////
+// ERROR HANDLING
+/////////////////////////////////////////////////////////
+
+function errorHandlingDemo(){
+
+    print("\n===== ERROR HANDLING =====");
+
+    try{
+
+        let num = 10;
+
+        if(num === 10){
+            throw new Error("Custom Error Generated");
+        }
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        print("Caught Error: " + error.message);
+
+    }
+    finally{
+
+        print("Finally block executed");
+
+    }
+
+}
+
+/////////////////////////////////////////////////////////
+// PERFORMANCE TEST
+/////////////////////////////////////////////////////////
+
+function performanceDemo(){
+
+    print("\n===== PERFORMANCE =====");
+
+    console.time("Loop Timer");
+
+    let total = 0;
+
+    for(let i=0;i<1000000;i++){
+
+        total += i;
+
+    }
+
+    console.timeEnd("Loop Timer");
+
+    print("Loop completed.");
+
+}
+
+/////////////////////////////////////////////////////////
+// LOCAL STORAGE
+/////////////////////////////////////////////////////////
+
+function localStorageDemo(){
+
+    print("\n===== LOCAL STORAGE =====");
+
+    localStorage.setItem("name","Akilan");
+
+    let value = localStorage.getItem("name");
+
+    print("Stored Value: " + value);
+
+}
+
+/////////////////////////////////////////////////////////
+// CLEAN CODE
+/////////////////////////////////////////////////////////
+
+function calculateTax(amount){
+
+    return amount * 0.18;
+
+}
+
+function cleanCodeDemo(){
+
+    print("\n===== CLEAN CODE =====");
+
+    let price = 5000;
+
+    let tax = calculateTax(price);
+
+    print("Price : " + price);
+
+    print("Tax : " + tax);
+
+}
+
+/////////////////////////////////////////////////////////
+// DEBOUNCE
+/////////////////////////////////////////////////////////
+
+function debounce(func,delay){
+
+    let timer;
+
+    return function(){
+
+        clearTimeout(timer);
+
+        timer = setTimeout(()=>{
+
+            func.apply(this,arguments);
+
+        },delay);
+
+    }
+
+}
+
+function searchFunction(){
+
+    console.log("Searching:",this.value);
+
+}
+
+const searchInput = document.getElementById("searchInput");
+
+searchInput.addEventListener(
+"keyup",
+debounce(searchFunction,500)
+);
+
+/////////////////////////////////////////////////////////
+// EVENT DELEGATION
+/////////////////////////////////////////////////////////
+
+document.body.addEventListener("click",(event)=>{
+
+    console.log("Clicked Element:",event.target);
+
+});
+
+/////////////////////////////////////////////////////////
+// BEST PRACTICES
+/////////////////////////////////////////////////////////
+
+// Use const whenever possible
+const company = "OpenAI";
+
+// Use let for changing variables
+let counter = 0;
+
+// Avoid var
+
+// Use meaningful names
+function calculateArea(length,width){
+
+    return length * width;
+
+}
+
+// Use === instead of ==
+console.log(5 === "5");
+
+// Avoid global variables
+
+// Single Responsibility Principle
+function add(a,b){
+
+    return a+b;
+
+}
+
+function subtract(a,b){
+
+    return a-b;
+
+}
+
+/////////////////////////////////////////////////////////
+// DEVTOOLS TIPS
+/////////////////////////////////////////////////////////
+
+console.log("F12 => Open Developer Tools");
+
+console.log("Sources Tab => Breakpoints");
+
+console.log("Network Tab => API Requests");
+
+console.log("Application Tab => LocalStorage");
+
+console.log("Performance Tab => Profiling");
+
+console.log("Memory Tab => Memory Leak Detection");
+
+</script>
+
+</body>
+</html>
