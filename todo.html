@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo App</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #533483 100%);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Floating decorative blobs */
+    body::before,
+    body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::before {
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, #a78bfa, #6366f1);
+      top: -100px;
+      left: -100px;
+      animation: drift 10s ease-in-out infinite alternate;
+    }
+
+    body::after {
+      width: 350px;
+      height: 350px;
+      background: radial-gradient(circle, #f472b6, #ec4899);
+      bottom: -80px;
+      right: -80px;
+      animation: drift 13s ease-in-out infinite alternate-reverse;
+    }
+
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(40px, 30px) scale(1.1); }
+    }
+
+    /* Extra blob */
+    .blob-mid {
+      position: fixed;
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle, #34d399, #059669);
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.15;
+      top: 45%;
+      left: 60%;
+      pointer-events: none;
+      z-index: 0;
+      animation: drift 16s ease-in-out infinite alternate;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+      height: fit-content;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 24px;
+      background: linear-gradient(90deg, #a78bfa, #f472b6, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .input-row input {
+      flex: 1;
+      padding: 11px 14px;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      font-size: 1rem;
+      outline: none;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .input-row input::placeholder { color: rgba(255,255,255,0.4); }
+
+    .input-row input:focus {
+      border-color: #a78bfa;
+      background: rgba(255,255,255,0.15);
+    }
+
+    .input-row button {
+      padding: 11px 20px;
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      box-shadow: 0 4px 15px rgba(99,102,241,0.4);
+    }
+
+    .input-row button:hover  { opacity: 0.88; }
+    .input-row button:active { transform: scale(0.97); }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .filters button {
+      flex: 1;
+      padding: 7px 6px;
+      border: 1.5px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.07);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.65);
+      transition: all 0.2s;
+    }
+
+    .filters button:hover {
+      background: rgba(255,255,255,0.13);
+      color: #fff;
+    }
+
+    .filters button.active {
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      border-color: transparent;
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 2px 10px rgba(99,102,241,0.35);
+    }
+
+    #todo-list {
+      list-style: none;
+    }
+
+    #todo-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: background 0.2s, transform 0.15s;
+      animation: fadeIn 0.22s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    #todo-list li:hover {
+      background: rgba(167,139,250,0.15);
+      transform: translateX(3px);
+    }
+
+    #todo-list li.done .todo-text {
+      text-decoration: line-through;
+      color: rgba(255,255,255,0.3);
+    }
+
+    #todo-list li input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #a78bfa;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .todo-text {
+      flex: 1;
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.9);
+      word-break: break-word;
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.25);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: color 0.2s, background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .delete-btn:hover {
+      color: #f472b6;
+      background: rgba(244,114,182,0.15);
+    }
+
+    .footer {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.45);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 14px;
+    }
+
+    .clear-btn {
+      background: none;
+      border: none;
+      color: #f472b6;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .clear-btn:hover { text-decoration: underline; }
+
+    .empty {
+      text-align: center;
+      color: rgba(255,255,255,0.3);
+      padding: 28px 0;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="blob-mid"></div>
+  <div class="container">
+    <h1>Todo List</h1>
+
+    <div class="input-row">
+      <input type="text" id="todo-input" placeholder="Add a new task..." maxlength="200">
+      <button onclick="addTodo()">Add</button>
+    </div>
+
+    <div class="filters">
+      <button class="active" onclick="setFilter('all', this)">All</button>
+      <button onclick="setFilter('active', this)">Active</button>
+      <button onclick="setFilter('done', this)">Done</button>
+    </div>
+
+    <ul id="todo-list"></ul>
+
+    <div class="footer">
+      <span id="count-label">0 items left</span>
+      <button class="clear-btn" onclick="clearDone()">Clear completed</button>
+    </div>
+  </div>
+
+  <script>
+    let todos = JSON.parse(localStorage.getItem('todos') || '[]');
+    let filter = 'all';
+
+    const input = document.getElementById('todo-input');
+    const list = document.getElementById('todo-list');
+    const countLabel = document.getElementById('count-label');
+
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') addTodo(); });
+
+    function save() {
+      localStorage.setItem('todos', JSON.stringify(todos));
+    }
+
+    function addTodo() {
+      const text = input.value.trim();
+      if (!text) return;
+      todos.push({ id: Date.now(), text, done: false });
+      input.value = '';
+      save();
+      render();
+    }
+
+    function toggleTodo(id) {
+      const todo = todos.find(t => t.id === id);
+      if (todo) todo.done = !todo.done;
+      save();
+      render();
+    }
+
+    function deleteTodo(id) {
+      todos = todos.filter(t => t.id !== id);
+      save();
+      render();
+    }
+
+    function clearDone() {
+      todos = todos.filter(t => !t.done);
+      save();
+      render();
+    }
+
+    function setFilter(f, btn) {
+      filter = f;
+      document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    }
+
+    function render() {
+      const visible = todos.filter(t =>
+        filter === 'all' ? true :
+        filter === 'active' ? !t.done :
+        t.done
+      );
+
+      if (visible.length === 0) {
+        list.innerHTML = '<li class="empty">No tasks here!</li>';
+      } else {
+        list.innerHTML = visible.map(t => `
+          <li class="${t.done ? 'done' : ''}">
+            <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTodo(${t.id})">
+            <span class="todo-text">${escapeHtml(t.text)}</span>
+            <button class="delete-btn" onclick="deleteTodo(${t.id})" title="Delete">&#x2715;</button>
+          </li>
+        `).join('');
+      }
+
+      const remaining = todos.filter(t => !t.done).length;
+      countLabel.textContent = `${remaining} item${remaining !== 1 ? 's' : ''} left`;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    render();
+  </script>
+</body>
+</html>
