@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraChat & Admin Portal</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --accent-primary: #6366f1;
+            --accent-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --online-color: #22c55e;
+            --offline-color: #64748b;
+            --admin-accent: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Views State Engine */
+        .view-panel {
+            display: none;
+            width: 100%;
+            height: 100%;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .view-panel.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Auth Screen Styling */
+        .auth-container {
+            width: 100%;
+            max-width: 420px;
+            background: var(--panel-bg);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 1px solid #334155;
+            margin: auto;
+            text-align: center;
+        }
+
+        .auth-logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 0.85rem 1rem;
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.85rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .auth-switch {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .auth-switch span {
+            color: var(--accent-primary);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Application Main Interface Grid */
+        .app-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            background: #111827;
+            border-right: 1px solid #1f2937;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #1f2937;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .profile-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--text-main);
+        }
+
+        .logout-btn {
+            background: #374151;
+            color: #f3f4f6;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border: none;
+        }
+
+        .logout-btn:hover {
+            background: #4b5563;
+        }
+
+        .contact-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.75rem;
+        }
+
+        .contact-card {
+            display: flex;
+            align-items: center;
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0.4rem;
+            border: 1px solid transparent;
+        }
+
+        .contact-card:hover {
+            background: #1f2937;
+        }
+
+        .contact-card.active {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            background: #374151;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            position: relative;
+            margin-right: 0.85rem;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #111827;
+            position: absolute;
+            bottom: 1px;
+            right: 1px;
+        }
+
+        .status-dot.online { background-color: var(--online-color); }
+        .status-dot.offline { background-color: var(--offline-color); }
+
+        .contact-info {
+            flex: 1;
+        }
+
+        .contact-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.2rem;
+        }
+
+        .contact-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .status-text {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Chat Core Workspace Layout */
+        .chat-area {
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .chat-blank-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .chat-blank-state h3 {
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        .chat-header {
+            padding: 1.2rem 2rem;
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            align-items: center;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message-bubble {
+            max-width: 65%;
+            padding: 0.85rem 1.1rem;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+            position: relative;
+            animation: messageSlide 0.2s ease-out;
+        }
+
+        @keyframes messageSlide {
+            from { transform: translateY(8px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .message-bubble.incoming {
+            background: #334155;
+            color: var(--text-main);
+            align-self: flex-start;
+            border-top-left-radius: 2px;
+        }
+
+        .message-bubble.outgoing {
+            background: var(--accent-primary);
+            color: white;
+            align-self: flex-end;
+            border-top-right-radius: 2px;
+        }
+
+        .message-timestamp {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 0.4rem;
+            text-align: right;
+            display: block;
+        }
+
+        .message-bubble.incoming .message-timestamp {
+            color: var(--text-muted);
+        }
+
+        .chat-input-row {
+            padding: 1.2rem 2rem;
+            background: #1e293b;
+            border-top: 1px solid #334155;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .chat-input-row input {
+            flex: 1;
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 0.9rem 1.2rem;
+            border-radius: 30px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+
+        .chat-input-row input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .send-btn {
+            background: var(--accent-primary);
+            color: white;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+Use code with caution.background: var(--accent-hover);}/* Admin Module System Styling */.admin-layout {display: grid;grid-template-columns: 280px 1fr;width: 100vw;height: 100vh;}.admin-sidebar {background: #111c2a;border-right: 1px solid #1e2e42;padding: 1.5rem;display: flex;flex-direction: column;justify-content: space-between;}.admin-brand {font-size: 1.4rem;font-weight: 800;color: var(--admin-accent);letter-spacing: 0.05em;margin-bottom: 2rem;display: flex;align-items: center;gap: 0.5rem;}.admin-nav-item {padding: 0.85rem 1rem;border-radius: 8px;cursor: pointer;font-weight: 600;transition: all 0.2s;margin-bottom: 0.5rem;color: var(--text-muted);}.admin-nav-item.active, .admin-nav-item:hover {background: rgba(239, 68, 68, 0.15);color: #fca5a5;}.admin-main {background: #0b111e;padding: 2.5rem;overflow-y: auto;}.admin-section-header {display: flex;justify-content: space-between;align-items: center;margin-bottom: 2rem;border-bottom: 1px solid #1e2e42;padding-bottom: 1rem;}.admin-card {background: #162235;border: 1px solid #243752;border-radius: 12px;padding: 1.5rem;margin-bottom: 1.5rem;}.user-grid-table {width: 100%;border-collapse: collapse;text-align: left;}.user-grid-table th {padding: 1rem;border-bottom: 2px solid #243752;color: var(--text-muted);font-size: 0.85rem;text-transform: uppercase;}.user-grid-table td {padding: 1rem;border-bottom: 1px solid #1e2e42;vertical-align: middle;}.btn-danger {background: var(--admin-accent);color: white;padding: 0.4rem 0.8rem;border-radius: 6px;font-size: 0.85rem;border: none;cursor: pointer;}.btn-danger:hover {background: #b91c1c;}/* Logs Monitor Module UI */.spy-layout {display: grid;grid-template-columns: 240px 1fr;gap: 1.5rem;height: calc(100vh - 180px);}.spy-user-list {background: #111c2a;border-radius: 10px;padding: 0.5rem;overflow-y: auto;border: 1px solid #1e2e42;}.spy-user-item {padding: 0.75rem 1rem;border-radius: 6px;cursor: pointer;margin-bottom: 0.25rem;font-size: 0.9rem;}.spy-user-item:hover, .spy-user-item.active {background: #243752;}.spy-terminal-box {background: #050b14;border: 1px solid #1e2e42;border-radius: 10px;display: flex;flex-direction: column;overflow: hidden;}.spy-terminal-header {background: #111c2a;padding: 0.75rem 1.5rem;border-bottom: 1px solid #1e2e42;font-size: 0.85rem;font-family: monospace;color: #34d399;}.spy-feed {flex: 1;padding: 1.5rem;overflow-y: auto;display: flex;flex-direction: column;gap: 0.75rem;font-family: monospace;}.spy-row {padding: 0.5rem 0.75rem;border-radius: 4px;background: rgba(255,255,255,0.02);border-left: 3px solid var(--accent-primary);}/* Modal Overlay Configuration */.modal-bg {position: fixed;top: 0; left: 0; width: 100vw; height: 100vh;background: rgba(0,0,0,0.7);display: none;justify-content: center;align-items: center;z-index: 200;}.modal-bg.active { display: flex; }AuraChatSign in to begin chatting in real-timeUsernamePassword (Admin Only)Enter ChatroomAre you an administrator? Click hereUserSign OutWelcome to AuraChatSelect an online or offline contact from the left pane to begin messaging.?Loading UserOffline➔🛡️ Admin PortalManage UsersLive Logs & SpyExit SystemUser Directory Overview+ Provision UserUser PersonaReal-time Network StatusAction ControlsLive Communications Intercept FeedMonitor end-to-end conversation logs database globally.TARGET_FEED: ALL_DATA✕Provision Brand New Chat AccountDesired Account UsernameCreate Database Recordclass EngineCore {constructor() {this.usersKey = 'aurachat_users_db';this.logsKey = 'aurachat_msg_logs';this.sessionKey = 'aurachat_session_token';this.currentUser = null;this.activeTargetChatUser = null;this.isAdminMode = false;this.activeSpyTargetUser = null;this.initDatabase();this.bindDOMEvents();this.evaluateSessionRoute();this.startHeartbeatLoop();}// Database Seeding Logic via Browser StorageinitDatabase() {if (!localStorage.getItem(this.usersKey)) {const defaultSeedUsers = ['Alex_Jones', 'Priya_Nair', 'Siddharth', 'Emily_Watson'];localStorage.setItem(this.usersKey, JSON.stringify(defaultSeedUsers));}if (!localStorage.getItem(this.logsKey)) {localStorage.setItem(this.logsKey, JSON.stringify([]));}}getRegisteredUsers() {return JSON.parse(localStorage.getItem(this.usersKey)) || [];}getChatLogs() {return JSON.parse(localStorage.getItem(this.logsKey)) || [];}// Realtime Reactive State System Engine InterconnectionsgetOnlineUsers() {const onlineMap = JSON.parse(localStorage.getItem('aurachat_heartbeats') || '{}');const now = Date.now();const activeOnlines = [];for (const [user, timestamp] of Object.entries(onlineMap)) {if (now - timestamp < 4000) { // Active window heartbeat rule checkactiveOnlines.push(user);}}return activeOnlines;}emitHeartbeat() {if (!this.currentUser || this.currentUser === 'adminakil') return;const onlineMap = JSON.parse(localStorage.getItem('aurachat_heartbeats') || '{}');onlineMap[this.currentUser] = Date.now();localStorage.setItem('aurachat_heartbeats', JSON.stringify(onlineMap));}// Bind UI Event ReceiversbindDOMEvents() {document.getElementById('toggleAuthMode').addEventListener('click', () => this.toggleAuthViewLayout());document.getElementById('authPrimaryBtn').addEventListener('click', () => this.handleAuthentication());document.getElementById('sendMsgBtn').addEventListener('click', () => this.executeSendMessage());document.getElementById('chatMsgInput').addEventListener('keypress', (e) => {if (e.key === 'Enter') this.executeSendMessage();});// Cross-Tab Instancy Sync Listener Intercept Hookwindow.addEventListener('storage', (e) => {if (e.key === this.logsKey || e.key === 'aurachat_heartbeats' || e.key === this.usersKey) {this.renderActiveViewComponents();}});}toggleAuthViewLayout() {this.isAdminMode = !this.isAdminMode;const pWordField = document.getElementById('passGroup');const subtitle = document.getElementById('authSubtitle');const toggleMsg = document.getElementById('authToggleMessage');const mainBtn = document.getElementById('authPrimaryBtn');if (this.isAdminMode) {pWordField.style.display = 'block';subtitle.innerText = "Administrative Command Operations Verification Access";toggleMsg.innerHTML = "Standard Chat User? Return to login";mainBtn.innerText = "Authenticate Admin Credentials";} else {pWordField.style.display = 'none';subtitle.innerText = "Sign in to begin chatting in real-time";toggleMsg.innerHTML = "Are you an administrator? Click here";mainBtn.innerText = "Enter Chatroom";}// Rebind dynamically replaced structural target elementdocument.getElementById('toggleAuthMode').addEventListener('click', () => this.toggleAuthViewLayout());}handleAuthentication() {const username = document.getElementById('usernameInput').value.trim();const pword = document.getElementById('passwordInput').value.trim();if (!username) return alert('Username entry profile field cannot remain blank.');if (this.isAdminMode) {if (username === 'adminakil' && pword === 'akiladmin') {this.setCurrentSession('adminakil');} else {alert('Invalid secure administrative access authorization credentials.');}} else {if (username.toLowerCase() === 'adminakil') {return alert('Username restricted. Access via Administrative console toggle portal link below.');}let usersList = this.getRegisteredUsers();if (!usersList.includes(username)) {usersList.push(username);localStorage.setItem(this.usersKey, JSON.stringify(usersList));}this.setCurrentSession(username);}}setCurrentSession(user) {this.currentUser = user;localStorage.setItem(this.sessionKey, user);this.evaluateSessionRoute();}evaluateSessionRoute() {const activeSession = localStorage.getItem(this.sessionKey);// Reset standard display modulesdocument.getElementById('authView').classList.remove('active');document.getElementById('chatView').classList.remove('active');document.getElementById('adminView').classList.remove('active');if (!activeSession) {this.currentUser = null;document.getElementById('authView').classList.add('active');} else {this.currentUser = activeSession;if (activeSession === 'adminakil') {document.getElementById('adminView').classList.add('active');this.switchAdminTab('users');} else {document.getElementById('chatView').classList.add('active');document.getElementById('currentUserDisplay').innerText = 👋 ${this.currentUser};this.renderActiveViewComponents();}}}logout() {if (this.currentUser && this.currentUser !== 'adminakil') {const onlineMap = JSON.parse(localStorage.getItem('aurachat_heartbeats') || '{}');delete onlineMap[this.currentUser];localStorage.setItem('aurachat_heartbeats', JSON.stringify(onlineMap));}localStorage.removeItem(this.sessionKey);this.activeTargetChatUser = null;document.getElementById('usernameInput').value = '';document.getElementById('passwordInput').value = '';this.evaluateSessionRoute();}startHeartbeatLoop() {// Instantly declare loop cycles for tracking online updatessetInterval(() => {this.emitHeartbeat();this.renderActiveViewComponents();}, 1500);}// Universal Render Processing Dispatch ControllerrenderActiveViewComponents() {const activeSession = localStorage.getItem(this.sessionKey);if (!activeSession) return;if (activeSession === 'adminakil') {this.renderAdminDashboardData();} else {this.renderUserChatroomUI();}}/* USER CHAT INTERFACE RENDERING ENGINE */renderUserChatroomUI() {const contactsTarget = document.getElementById('contactsTarget');const usersList = this.getRegisteredUsers().filter(u => u !== this.currentUser);const onlines = this.getOnlineUsers();let htmlBuffer = '';usersList.forEach(user => {const isOnline = onlines.includes(user);const isActive = this.activeTargetChatUser === user ? 'active' : '';const initial = user.charAt(0).toUpperCase();htmlBuffer += `${initial}
+</div>
+<div class="contact-info">
+    <div class="contact-meta">
+        <span class="contact-name">${user}</span>
+        <span class="status-text">${isOnline ? 'Online' : 'Offline'}</              span>
+    </div>
+    <div class="status-dot ${isOnline ? 'online' : 'offline'}"></div>
+</div>
+</div>`;});contactsTarget.innerHTML = htmlBuffer;if (this.activeTargetChatUser) {this.renderChatMessages(this.activeTargetChatUser);} else {document.getElementById('chatContentArea').innerHTML = `<div class="chat-blank-state">
+<h3>Welcome to AuraChat</h3>
+<p>Select an online or offline contact from the left pane to begin messaging.</p>
+</div>`;}}renderChatMessages(targetUser) {const logs = this.getChatLogs().filter(log => (log.sender === this.currentUser && log.receiver === targetUser) || (log.sender === targetUser && log.receiver === this.currentUser));let htmlBuffer = '';logs.forEach(log => {const isOutgoing = log.sender === this.currentUser;const bubbleClass = isOutgoing ? 'outgoing' : 'incoming';htmlBuffer += `<div class="message-bubble ${bubbleClass}">
+${log.message}
+<span class="message-timestamp">${new Date(log.timestamp).toLocaleTimeString()}</span>
+</div>`;});document.getElementById('chatContentArea').innerHTML = html  Buffer;document.getElementById('chatContentArea').scrollTop = document.getElementById('chatContentArea').scrollHeight;}executeSendMessage() {const msgInput = document.getElementById('chatMsgInput');const message = msgInput.value.trim();if (!message || !this.activeTargetChatUser) return;const logs = this.getChatLogs();logs.push({sender: this.currentUser, receiver: this.activeTargetChatUser, message: message, timestamp: Date.now()});localStorage.setItem(this.logsKey, JSON.stringify(logs));msgInput.value = '';this.renderChatMessages(this.activeTargetChatUser);}}
+</script>
+</body>
+</html>
